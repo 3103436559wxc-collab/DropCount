@@ -142,7 +142,7 @@ def make_plots(df: pd.DataFrame, out_dir: Path) -> None:
 
     fig, ax = plt.subplots(figsize=(6, 6))
     for label, col in [("DL", "pred_dl"), ("Naive", "pred_naive"), ("MLE", "pred_mle")]:
-        ax.scatter(df["true_total_copies"], df[col], s=10, alpha=0.45, label=label)
+        ax.scatter(df["true_total_copies"], df[col], s=4, alpha=0.18, label=label)
     lim = max(df[["true_total_copies", "pred_dl", "pred_naive", "pred_mle"]].to_numpy().max(), 1.0)
     ax.plot([1, lim], [1, lim], "k--", linewidth=1)
     ax.set_xscale("log")
@@ -158,7 +158,7 @@ def make_plots(df: pd.DataFrame, out_dir: Path) -> None:
     fig, ax = plt.subplots(figsize=(7, 4))
     for label, col in [("DL", "pred_dl"), ("Naive", "pred_naive"), ("MLE", "pred_mle")]:
         rel_err = (df[col] - df["true_total_copies"]) / np.maximum(df["true_total_copies"], 1.0)
-        ax.scatter(df["true_total_copies"], rel_err, s=10, alpha=0.35, label=label)
+        ax.scatter(df["true_total_copies"], rel_err, s=4, alpha=0.18, label=label)
     ax.axhline(0.0, color="black", linestyle="--", linewidth=1)
     ax.set_xscale("log")
     ax.set_xlabel("True total copies")
