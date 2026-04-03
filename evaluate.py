@@ -140,10 +140,31 @@ def summarize_metrics(df: pd.DataFrame, copy_bins: List[int]) -> Dict[str, pd.Da
 def make_plots(df: pd.DataFrame, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # 只用于绘图的数据，不影响正式指标计算
+    bins = [0, 20, 100, 1000, 5000, 10000, 20000]
+    plot_df = df.copy()
+    plot_df["copy_bin"] = pd.cut(
+        plot_df["true_total_copies"],
+        bins=bins,
+        include_lowest=True,
+        right=True,
+    )
+    plot_df = (
+        plot_df.groupby("copy_bin", group_keys=False)
+        .apply(lambda x: x.sample(n=min(250, len(x)), random_state=42))
+        .reset_index(drop=True)
+    )
+
     fig, ax = plt.subplots(figsize=(6, 6))
-    for label, col in [("DL", "pred_dl"), ("Naive", "pred_naive"), ("MLE", "pred_mle")]:
-        ax.scatter(df["true_total_copies"], df[col], s=4, alpha=0.18, label=label)
-    lim = max(df[["true_total_copies", "pred_dl", "pred_naive", "pred_mle"]].to_numpy().max(), 1.0)
+for label, col in [("DL", "pred_dl"), ("Naive", "pred_naive"), ("MLE", "pred_mle")]:
+    ax.scatter(
+        plot_df["true_total_copies"],
+        plot_df[col],
+        s=2,
+        alpha=0.12,
+        label=label
+    )
+lim = max(plot_df[["true_total_copies", "pred_dl", "pred_naive", "pred_mle"]].to_numpy().max(), 1.0)
     ax.plot([1, lim], [1, lim], "k--", linewidth=1)
     ax.set_xscale("log")
     ax.set_yscale("log")
@@ -154,11 +175,29 @@ def make_plots(df: pd.DataFrame, out_dir: Path) -> None:
     fig.tight_layout()
     fig.savefig(out_dir / "pred_vs_true_loglog.png", dpi=180)
     plt.close(fig)
+for label, col in [("DL", "pred_dl"), ("Naive", "pred_naive"), ("MLE", "pred_mle")]:
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.scatter(
+        plot_df["true_total_copies"],
+        plot_df[col],
+        s=2,
+        alpha=0.12
+    )
+    lim = max(plot_df[["true_total_copies", col]].to_numpy().max(), 1.0)
+    ax.plot([1, lim], [1, lim], "k--", linewidth=1)
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("True total copies")
+    ax.set_ylabel("Predicted total copies")
+    ax.set_title(f"{label}: Predicted vs. true copies")
+    fig.tight_layout()
+    fig.savefig(out_dir / f"pred_vs_true_{label.lower()}.png", dpi=180)
+    plt.close(fig)
 
-    fig, ax = plt.subplots(figsize=(7, 4))
-    for label, col in [("DL", "pred_dl"), ("Naive", "pred_naive"), ("MLE", "pred_mle")]:
-        rel_err = (df[col] - df["true_total_copies"]) / np.maximum(df["true_total_copies"], 1.0)
-        ax.scatter(df["true_total_copies"], rel_err, s=4, alpha=0.18, label=label)
+   fig, ax = plt.subplots(figsize=(7, 4))
+for label, col in [("DL", "pred_dl"), ("Naive", "pred_naive"), ("MLE", "pred_mle")]:
+    rel_err = (plot_df[col] - plot_df["true_total_copies"]) / np.maximum(plot_df["true_total_copies"], 1.0)
+    ax.scatter(plot_df["true_total_copies"], rel_err, s=2, alpha=0.12, label=label)
     ax.axhline(0.0, color="black", linestyle="--", linewidth=1)
     ax.set_xscale("log")
     ax.set_xlabel("True total copies")
@@ -174,7 +213,7 @@ def make_plots(df: pd.DataFrame, out_dir: Path) -> None:
         ((df[col] - df["true_total_copies"]) / np.maximum(df["true_total_copies"], 1.0)).to_numpy()
         for col in ["pred_dl", "pred_naive", "pred_mle"]
     ]
-    ax.boxplot(data, labels=["DL", "Naive", "MLE"], showfliers=False)
+    ax.boxplot(data, tick_labels=["DL", "Naive", "MLE"], showfliers=False)
     ax.set_ylabel("Relative error")
     ax.set_title("Error comparison by method")
     fig.tight_layout()
