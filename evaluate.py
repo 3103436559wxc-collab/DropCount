@@ -156,15 +156,46 @@ def make_plots(df: pd.DataFrame, out_dir: Path) -> None:
     )
 
     # 1) 总体 predicted vs true 图
-    fig, ax = plt.subplots(figsize=(6, 6))
-    for label, col in [("DL", "pred_dl"), ("Naive", "pred_naive"), ("MLE", "pred_mle")]:
-        ax.scatter(
-            plot_df["true_total_copies"],
-            plot_df[col],
-            s=2,
-            alpha=1,
-            label=label,
-        )
+fig, ax = plt.subplots(figsize=(6, 6))
+
+rng = np.random.default_rng(42)
+
+offsets = {
+    "DL": 0.00,
+    "Naive": -0.015,
+    "MLE": 0.015,
+}
+
+markers = {
+    "DL": "s",
+    "Naive": "o",
+    "MLE": "^",
+}
+
+zorders = {
+    "DL": 3,
+    "Naive": 2,
+    "MLE": 1,
+}
+
+for label, col in [("DL", "pred_dl"), ("Naive", "pred_naive"), ("MLE", "pred_mle")]:
+    x = plot_df["true_total_copies"].to_numpy(dtype=float)
+    y = plot_df[col].to_numpy(dtype=float)
+
+    # log-space jitter（关键！）
+    jitter = rng.normal(0, 0.01, size=len(x))
+    x_jitter = x * (10 ** (jitter + offsets[label]))
+
+    ax.scatter(
+        x_jitter,
+        y,
+        s=8,
+        alpha=0.85,
+        marker=markers[label],
+        label=label,
+        zorder=zorders[label],
+        edgecolors="none",
+    )
     lim = max(
         plot_df[["true_total_copies", "pred_dl", "pred_naive", "pred_mle"]]
         .to_numpy()
