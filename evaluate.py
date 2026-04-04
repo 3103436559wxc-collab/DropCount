@@ -162,7 +162,7 @@ def make_plots(df: pd.DataFrame, out_dir: Path) -> None:
             plot_df["true_total_copies"],
             plot_df[col],
             s=2,
-            alpha=0.12,
+            alpha=1,
             label=label,
         )
     lim = max(
@@ -189,7 +189,7 @@ def make_plots(df: pd.DataFrame, out_dir: Path) -> None:
             plot_df["true_total_copies"],
             plot_df[col],
             s=2,
-            alpha=0.12,
+            alpha=1,
         )
         lim = max(
             plot_df[["true_total_copies", col]].to_numpy().max(),
@@ -215,7 +215,7 @@ def make_plots(df: pd.DataFrame, out_dir: Path) -> None:
             plot_df["true_total_copies"],
             rel_err,
             s=2,
-            alpha=0.12,
+            alpha=1,
             label=label,
         )
     ax.axhline(0.0, color="black", linestyle="--", linewidth=1)
